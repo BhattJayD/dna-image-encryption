@@ -6,6 +6,8 @@ import numpy as np
 import hashlib 
 import binascii
 import textwrap
+from scipy.integrate import odeint
+from bisect import bisect_left as bsearch
 
 root =tk.Tk()
 root.title("Image Encrption using Dynamic DNA Cryptography")
@@ -19,6 +21,8 @@ cwgt.img=image1
 cwgt.create_image(0, 0, anchor=tk.NW, image=image1)
 
 x0,y0,z0=0,0,0
+a, b, c = 10, 2.667, 28
+tmax, N = 100, 10000
 dna={}
 dna["00"]="A"
 dna["01"]="T"
@@ -166,6 +170,132 @@ class MyButton:
 		mmk=key_matrix_encode(kn,B)
 		print("fi\n",mmk)
 
+		def xor_operation(b,g,r,mk):
+			m,n = b.shape
+			bx=np.chararray((m,n))
+			gx=np.chararray((m,n))
+			rx=np.chararray((m,n))
+			b=b.astype(str)
+			g=g.astype(str)
+			r=r.astype(str)
+			for i in range(0,m):
+				for j in range (0,n):
+					bx[i,j] = dna["{0}{1}".format(b[i,j],mk[i,j])]
+					gx[i,j] = dna["{0}{1}".format(g[i,j],mk[i,j])]
+					rx[i,j] = dna["{0}{1}".format(r[i,j],mk[i,j])]
+			bx=bx.astype(str)
+			gx=gx.astype(str)
+			rx=rx.astype(str)
+			print("xor",bx)
+			return bx,gx,rx 
+		blue_final, green_final, red_final = xor_operation(bn,gn,rn,mmk)
+
+		def lorenz(X, t, a, b, c):
+			x, y, z = X
+			x_dot = -a*(x - y)
+			y_dot = c*x - y - x*z
+			z_dot = -b*z + x*y
+			return x_dot, y_dot, z_dot
+
+		def gen_chaos_seq(m,n):
+			global x0,y0,z0,a,b,c,N
+			N=m*n*4
+			x= np.array((m,n*4))
+			y= np.array((m,n*4))
+			z= np.array((m,n*4))
+			t = np.linspace(0, tmax, N)
+			f = odeint(lorenz, (x0, y0, z0), t, args=(a, b, c))
+			x, y, z = f.T
+			x=x[:(N)]
+			y=y[:(N)]
+			z=z[:(N)]
+			print("ge",z)
+			return x,y,z
+		x,y,z=gen_chaos_seq(m,n)
+
+		def sequence_indexing(x,y,z):
+			n=len(x)
+			fx=np.zeros((n),dtype=np.uint32)
+			fy=np.zeros((n),dtype=np.uint32)
+			fz=np.zeros((n),dtype=np.uint32)
+			seq=sorted(x)
+			for k1 in range(0,n):
+				t = x[k1]
+				k2 = bsearch(seq, t)
+				fx[k1]=k2
+			seq=sorted(y)
+			for k1 in range(0,n):
+				t = y[k1]
+				k2 = bsearch(seq, t)
+				fy[k1]=k2
+			seq=sorted(z)
+			for k1 in range(0,n):
+				t = z[k1]
+				k2 = bsearch(seq, t)
+				fz[k1]=k2
+			print("fx",fx)
+			return fx,fy,fz
+		fx,fy,fz=sequence_indexing(x,y,z)
+
+		def scramble(fx,fy,fz,b,r,g):
+			p,q=b.shape
+			size = p*q
+			bx=b.reshape(size).astype(str)
+			gx=g.reshape(size).astype(str)
+			rx=r.reshape(size).astype(str)
+			bx_s=np.chararray((size))
+			gx_s=np.chararray((size))
+			rx_s=np.chararray((size))
+			for i in range(size):
+				idx = fz[i]
+				bx_s[i] = bx[idx]
+			for i in range(size):
+				idx = fy[i]
+				gx_s[i] = gx[idx]
+			for i in range(size):
+				idx = fx[i]
+				rx_s[i] = rx[idx]
+			bx_s=bx_s.astype(str)
+			gx_s=gx_s.astype(str)
+			rx_s=rx_s.astype(str)
+
+			b_s=np.chararray((p,q))
+			g_s=np.chararray((p,q))
+			r_s=np.chararray((p,q))
+			b_s=bx_s.reshape(p,q)
+			g_s=gx_s.reshape(p,q)
+			r_s=rx_s.reshape(p,q)
+			print("bs\n",b_s)
+			return b_s,g_s,r_s
+		blue_scrambled,green_scrambled,red_scrambled = scramble(fx,fy,fz,blue_final,red_final,green_final)
+
+		def dna_decode(b,g,r):
+			m,n = b.shape
+			r_dec= np.ndarray((m,int(n*2)),dtype=np.uint8)
+			g_dec= np.ndarray((m,int(n*2)),dtype=np.uint8)
+			b_dec= np.ndarray((m,int(n*2)),dtype=np.uint8)
+			for color,dec in zip((b,g,r),(b_dec,g_dec,r_dec)):
+				for j in range(0,m):
+					for i in range(0,n):
+						dec[j,2*i]=dna["{0}".format(color[j,i])][0]
+						dec[j,2*i+1]=dna["{0}".format(color[j,i])][1]
+			b_dec=(np.packbits(b_dec,axis=-1))
+			g_dec=(np.packbits(g_dec,axis=-1))
+			r_dec=(np.packbits(r_dec,axis=-1))
+			print("oppp",b_dec)
+			return b_dec,g_dec,r_dec
+		b,g,r=dna_decode(blue_scrambled,green_scrambled,red_scrambled)
+
+		def recover_image(b,g,r,iname):
+			img = cv2.imread(iname)
+			img[:,:,2] = r
+			img[:,:,1] = g
+			img[:,:,0] = b
+			cv2.imwrite(("enc.jpg"), img)
+			print("saved ecrypted image as enc.jpg")
+			print(img)
+			return img
+		img=recover_image(b,g,r,path)
 
 mb=MyButton(root)
 root.mainloop()
