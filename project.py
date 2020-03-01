@@ -8,6 +8,7 @@ import binascii
 import textwrap
 from scipy.integrate import odeint
 from bisect import bisect_left as bsearch
+import os
 
 root =tk.Tk()
 root.title("Image Encrption using Dynamic DNA Cryptography")
@@ -44,9 +45,9 @@ class MyButton:
 		self.f.propagate(0)
 		self.f.pack()
 		b1=tk.Button(root,text="Encrypt",bg="lightblue",fg="black", cursor='watch',command=self.main).place(x=150,y=10, width=100,height=30)
-		b2=tk.Button(root,text="Decrypt",bg="lightblue",fg="black", cursor='watch').place(x=250,y=10, width=100, height=30)
-		b2=tk.Button(root,text="Send",bg="lightblue",fg="black", cursor='watch').place(x=350,y=10, width=100, height=30)
-		b2=tk.Button(root,text="recieve",bg="lightblue",fg="black", cursor='watch').place(x=450,y=10, width=100, height=30)
+		b2=tk.Button(root,text="Decrypt",bg="lightblue",fg="black", cursor='watch',command=self.otherside).place(x=250,y=10, width=100, height=30)
+		#b2=tk.Button(root,text="Send",bg="lightblue",fg="black", cursor='watch').place(x=350,y=10, width=100, height=30)
+		#b2=tk.Button(root,text="recieve",bg="lightblue",fg="black", cursor='watch').place(x=450,y=10, width=100, height=30)
 		b4= tk.Button(root, text="Exit", bg="lightblue", fg="BLACK",cursor='watch',command=exit).place(x=235,y=370, width=100, height=30)
 	
 	def main(self):
@@ -296,6 +297,13 @@ class MyButton:
 			print(img)
 			return img
 		img=recover_image(b,g,r,path)
-
+		mycmd='python3 -m http.server'
+		os.system(mycmd)
+		mycmd.terminate()
+		#wg=' wget http://127.0.0.1:8000/enc.jpg'
+		#os.system(wg)
+	def otherside(self):
+		wg=' curl -L -o enc.jpg http://127.0.0.1:8000/enc.jpg'
+		os.system(wg)
 mb=MyButton(root)
 root.mainloop()
