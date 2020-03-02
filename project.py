@@ -304,6 +304,7 @@ class MyButton:
 		#os.system(wg)
 	def otherside(self):
 		wg=' curl -L -o enc.jpg http://127.0.0.1:8000/enc.jpg'
-		os.system(wg)
+		cu='torsocks curl -L -o enccc.jpg  http://xf7avbhyljpvcg62a7tt7xstpwnthzqbe3gqmmbt62tiltoqne7hzgyd.onion/dna-image-encryption-master/enc.jpg'
+		os.system(cu)
 mb=MyButton(root)
 root.mainloop()
