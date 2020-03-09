@@ -286,7 +286,6 @@ class MyButton:
 			print("oppp",b_dec)
 			return b_dec,g_dec,r_dec
 		b,g,r=dna_decode(blue_scrambled,green_scrambled,red_scrambled)
-
 		def recover_image(b,g,r,iname):
 			img = cv2.imread(iname)
 			img[:,:,2] = r
@@ -297,14 +296,93 @@ class MyButton:
 			print(img)
 			return img
 		img=recover_image(b,g,r,path)
-		mycmd='python3 -m http.server'
+		print(fx)
+		# img,fx,fy,fz,file_path,Mmk,blue,green,red send  mmkfrom keyencodemetrix rgb from decomposemetrix
+		fx1=open("fx1.txt",'w')
+		fx1.write(str(fx))
+		fx1.close()
+
+		fy1=open("fy1.txt",'w')
+		fy1.write(str(fy))
+		fy1.close()
+
+		fz1=open("fz1.txt",'w')
+		fz1.write(str(fz))
+		fz1.close()
+
+		fz1=open("rr.txt",'w')
+		fz1.write(str(R))
+		fz1.close()
+
+		fz1=open("gg.txt",'w')
+		fz1.write(str(G))
+		fz1.close()
+
+		fz1=open("bb.txt",'w')
+		fz1.write(str(B))
+		fz1.close()
+
+		fz1=open("mmk.txt",'w')
+		fz1.write(str(mmk))
+		fz1.close()
+		mycmd='python3 -m http.server 80'
 		os.system(mycmd)
-		mycmd.terminate()
+		#mycmd.terminate()
 		#wg=' wget http://127.0.0.1:8000/enc.jpg'
 		#os.system(wg)
 	def otherside(self):
-		wg=' curl -L -o enc.jpg http://127.0.0.1:8000/enc.jpg'
-		cu='torsocks curl -L -o enccc.jpg  http://xf7avbhyljpvcg62a7tt7xstpwnthzqbe3gqmmbt62tiltoqne7hzgyd.onion/dna-image-encryption-master/enc.jpg'
-		os.system(cu)
+		wg=' curl -L -o enc.jpg http://127.0.0.1:80/enc.jpg'
+		#cu='torsocks curl -L -o enccc.jpg  http://xf7avbhyljpvcg62a7tt7xstpwnthzqbe3gqmmbt62tiltoqne7hzgyd.onion/dna-image-encryption-master/enc.jpg'
+		#os.system(cu)
+		os.system(wg)
+		m1=' curl -L -o mmk.txt http://127.0.0.1:80/mmk.txt'
+		os.system(m1)
+		r1=' curl -L -o rr.txt http://127.0.0.1:80/rr.txt'
+		os.system(r1)
+		g1=' curl -L -o gg.txt http://127.0.0.1:80/gg.txt'
+		os.system(g1)
+		b1=' curl -L -o bb.txt http://127.0.0.1:80/bb.txt'
+		os.system(b1)
+		ffx1=' curl -L -o fx1.txt http://127.0.0.1:80/fx1.txt'
+		os.system(ffx1)
+		ffy1=' curl -L -o fy1.txt http://127.0.0.1:80/fy1.txt'
+		os.system(ffy1)
+		ffz1=' curl -L -o fz1.txt http://127.0.0.1:80/fz1.txt'
+		os.system(ffz1)
+		file=open('mmk.txt','r')
+		MMK=file.read()
+		file.close()
+		print(MMK)
+
+		file=open('rr.txt','r')
+		rr=file.read()
+		file.close()
+		print(rr)
+		file=open('gg.txt','r')
+		gg=file.read()
+		file.close()
+		print(gg)
+		file=open('bb.txt','r')
+		bb=file.read()
+		file.close()
+		print(bb)
+		file=open('fx1.txt','r')
+		fx1=file.read()
+		file.close()
+		print(fx1)
+		file=open('fy1.txt','r')
+		fy1=file.read()
+		file.close()
+		print(fy1)
+		file=open('fz1.txt','r')
+		fz1=file.read()
+		file.close()
+		print(fz1)
+		
+
+
+
+
+
 mb=MyButton(root)
 root.mainloop()
