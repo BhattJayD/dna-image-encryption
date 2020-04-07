@@ -8,6 +8,10 @@ import binascii
 import textwrap
 from scipy.integrate import odeint
 from bisect import bisect_left as bsearch
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+import sys
+from importlib import reload  
 import os
 
 root =tk.Tk()
@@ -37,6 +41,7 @@ dna["AA"]=dna["TT"]=dna["GG"]=dna["CC"]="A"
 dna["AG"]=dna["GA"]=dna["TC"]=dna["CT"]="G"
 dna["AC"]=dna["CA"]=dna["GT"]=dna["TG"]="C"
 dna["AT"]=dna["TA"]=dna["CG"]=dna["GC"]="T"
+global tr
 
 print(dna)
 class MyButton:
@@ -46,9 +51,9 @@ class MyButton:
 		self.f.pack()
 		b1=tk.Button(root,text="Encrypt",bg="lightblue",fg="black", cursor='watch',command=self.main).place(x=150,y=10, width=100,height=30)
 		b2=tk.Button(root,text="Decrypt",bg="lightblue",fg="black", cursor='watch',command=self.otherside).place(x=250,y=10, width=100, height=30)
-		#b2=tk.Button(root,text="Send",bg="lightblue",fg="black", cursor='watch').place(x=350,y=10, width=100, height=30)
+		b3=tk.Button(root,text="Get Encrypted Image",bg="lightblue",fg="black", cursor='watch',command=self.getimg).place(x=150,y=40, width=200, height=30)
 		#b2=tk.Button(root,text="recieve",bg="lightblue",fg="black", cursor='watch').place(x=450,y=10, width=100, height=30)
-		b4= tk.Button(root, text="Exit", bg="lightblue", fg="BLACK",cursor='watch',command=exit).place(x=235,y=370, width=100, height=30)
+		b4= tk.Button(root, text="Exit", bg="lightblue", fg="BLACK",cursor='watch',command=exit).place(x=230,y=370, width=100, height=30)
 	
 	def main(self):
 		from tkinter import filedialog
@@ -121,6 +126,7 @@ class MyButton:
 		update_lorents(kn)
 
 		def dna_encode(b,g,r):
+			print("en to ds")
 			b = np.unpackbits(b,axis=1)
 			g = np.unpackbits(g,axis=1)
 			r = np.unpackbits(r,axis=1)
@@ -286,6 +292,64 @@ class MyButton:
 			print("oppp",b_dec)
 			return b_dec,g_dec,r_dec
 		b,g,r=dna_decode(blue_scrambled,green_scrambled,red_scrambled)
+
+		# img,fx,fy,fz,file_path,Mmk,blue,green,red send  mmkfrom keyencodemetrix rgb from decomposemetrix
+
+
+
+
+		def scramble_new(fx,fy,fz,b,g,r):
+			print("e to sn")
+			p,q=b.shape
+			size = p*q
+			bx=b.reshape(size)
+			gx=g.reshape(size)
+			rx=r.reshape(size)
+			bx_s=b.reshape(size)
+			gx_s=g.reshape(size)
+			rx_s=r.reshape(size)
+			bx=bx.astype(str)
+			gx=gx.astype(str)
+			rx=rx.astype(str)
+			bx_s=bx_s.astype(str)
+			gx_s=gx_s.astype(str)
+			rx_s=rx_s.astype(str)
+			for i in range(size):
+				idx = fz[i]
+				bx_s[idx] = bx[i]
+			for i in range(size):
+				idx = fy[i]
+				gx_s[idx] = gx[i]
+			for i in range(size):
+				idx = fx[i]
+				rx_s[idx] = rx[i]
+			b_s=np.chararray((p,q))
+			g_s=np.chararray((p,q))
+			r_s=np.chararray((p,q))
+			b_s=bx_s.reshape(p,q)
+			g_s=gx_s.reshape(p,q)
+			r_s=rx_s.reshape(p,q)
+			return b_s,g_s,r_s
+
+		def xor_operation_new(b,g,r,mk):
+			m,n = b.shape
+			bx=np.chararray((m,n))
+			gx=np.chararray((m,n))
+			rx=np.chararray((m,n))
+			b=b.astype(str)
+			g=g.astype(str)
+			r=r.astype(str)
+			for i in range(0,m):
+				for j in range (0,n):
+					bx[i,j] = dna["{0}{1}".format(b[i,j],mk[i,j])]
+					gx[i,j] = dna["{0}{1}".format(g[i,j],mk[i,j])]
+					rx[i,j] = dna["{0}{1}".format(r[i,j],mk[i,j])]
+			bx=bx.astype(str)
+			gx=gx.astype(str)
+			rx=rx.astype(str)
+			print("com the xorn")
+			return bx,gx,rx 
+
 		def recover_image(b,g,r,iname):
 			img = cv2.imread(iname)
 			img[:,:,2] = r
@@ -293,50 +357,91 @@ class MyButton:
 			img[:,:,0] = b
 			cv2.imwrite(("enc.jpg"), img)
 			print("saved ecrypted image as enc.jpg")
-			print(img)
 			return img
 		img=recover_image(b,g,r,path)
-		print(fx)
-		# img,fx,fy,fz,file_path,Mmk,blue,green,red send  mmkfrom keyencodemetrix rgb from decomposemetrix
-		fx1=open("fx1.txt",'w')
-		fx1.write(str(fx))
-		fx1.close()
 
-		fy1=open("fy1.txt",'w')
-		fy1.write(str(fy))
-		fy1.close()
 
-		fz1=open("fz1.txt",'w')
-		fz1.write(str(fz))
-		fz1.close()
+		def decrypt(image,fx,fy,fz,fp,Mk,bt,gt,rt):
+			red = image[:,:,2]
+			green = image[:,:,1]
+			blue = image[:,:,0]
+			p,q = rt.shape
+			def dna_encode1(b,g,r):
+				print("en to ds")
+				b = np.unpackbits(b,axis=1)
+				g = np.unpackbits(g,axis=1)
+				r = np.unpackbits(r,axis=1)
+				m,n = b.shape
+				r_enc= np.chararray((m,int(n/2)))
+				g_enc= np.chararray((m,int(n/2)))
+				b_enc= np.chararray((m,int(n/2)))
+				for color,enc in zip((b,g,r),(b_enc,g_enc,r_enc)):
+					idx=0
+					for j in range(0,m):
+						for i in range(0,n,2):
+							enc[j,idx]=dna["{0}{1}".format(color[j,i],color[j,i+1])]
+							idx+=1
+							if (i==n-2):
+								idx=0
+								break
+				b_enc=b_enc.astype(str)
+				g_enc=g_enc.astype(str)
+				r_enc=r_enc.astype(str)
+				print("ddone")
+				return b_enc,g_enc,r_enc
+			bn,gn,rn=dna_encode(B,G,R)
+			print("blue\n",bn)
+			print("green\n",gn)
+			print("red \n",rn)
 
-		fz1=open("rr.txt",'w')
-		fz1.write(str(R))
-		fz1.close()
+			benc,genc,renc=dna_encode1(b,g,r)
+			bs,gs,rs=scramble_new(fx,fy,fz,benc,genc,renc)
+			bx,rx,gx=xor_operation_new(bs,gs,rs,Mk)
+			blue,green,red=dna_decode(bx,gx,rx)
+			green,red = red, green
+			img=np.zeros((p,q,3),dtype=np.uint8)	
+			img[:,:,0] = red
+			img[:,:,1] = green
+			img[:,:,2] = blue
+			print("RED\n",red)
+			print("GREEN\n",green)
+			print("BLUE\n",blue)
+			cv2.imwrite(("Recovered.jpg"), img)
+		decrypt(img,fx,fy,fz,path,mmk,blue,green,red)
 
-		fz1=open("gg.txt",'w')
-		fz1.write(str(G))
-		fz1.close()
 
-		fz1=open("bb.txt",'w')
-		fz1.write(str(B))
-		fz1.close()
-
-		fz1=open("mmk.txt",'w')
-		fz1.write(str(mmk))
-		fz1.close()
-		mycmd='python3 -m http.server 80'
-		os.system(mycmd)
+		#mycmd='python3 -m http.server 80'
+		#os.system(mycmd)
 		#mycmd.terminate()
 		#wg=' wget http://127.0.0.1:8000/enc.jpg'
 		#os.system(wg)
+		#imm=np.array(imm)
+		#print(type(imm))
+		'''def split_into_rgb_channels(img):
+			print(type(img))
+			print(img)
+			red = img[:,:,2]
+			green = img[:,:,1]
+			blue = img[:,:,0]
+			return red, green, blue
+		r,g,b=split_into_rgb_channels(img)
+		print("r",r)
+		print("g",g)
+		print("b",b)'''
+
+	def getimg(self):
+		eimg='torsocks curl -L -o enc.jpg 6jsygadgowg3nst7m5ndywez7hd5rlss2phdxpv44xhucjgowbkc4lid.onion/enc.jpg'
+		os.system(eimg)
 	def otherside(self):
-		wg=' curl -L -o enc.jpg http://127.0.0.1:80/enc.jpg'
-		#cu='torsocks curl -L -o enccc.jpg  http://xf7avbhyljpvcg62a7tt7xstpwnthzqbe3gqmmbt62tiltoqne7hzgyd.onion/dna-image-encryption-master/enc.jpg'
+		#wg=' curl -L -o enc.jpg http://127.0.0.1:80/enc.jpg'
+		#cu='torsocks curl -L -o enccc.jpg  qbgvqebxmduqhgfvspppecmjttoqxohwqqdwbtu4jx4txjeuri4tv2ad.onion/enc.jpg'
 		#os.system(cu)
-		os.system(wg)
-		m1=' curl -L -o mmk.txt http://127.0.0.1:80/mmk.txt'
+		#os.system(wg)
+		'''m1=' curl -L -o mmk.txt http://127.0.0.1:80/mmk.txt'
 		os.system(m1)
+
+		im='curl -L -o img.txt http://127.0.0.1:80/img.txt'
+		os.system(im)
 		r1=' curl -L -o rr.txt http://127.0.0.1:80/rr.txt'
 		os.system(r1)
 		g1=' curl -L -o gg.txt http://127.0.0.1:80/gg.txt'
@@ -353,6 +458,18 @@ class MyButton:
 		MMK=file.read()
 		file.close()
 		print(MMK)
+
+		file=open('img.txt','r')
+		img11=file.read()
+		file.close()
+		#iim=list()
+		imm=list(img11.split())
+		print(type(imm))
+		#img=int(img11)
+
+		#with open("img.txt", "r") as f:
+		#	for l in f:
+		#		print(sum([int(a) for a in l.split()]))
 
 		file=open('rr.txt','r')
 		rr=file.read()
@@ -378,6 +495,24 @@ class MyButton:
 		fz1=file.read()
 		file.close()
 		print(fz1)
+		
+
+		#[int(i) for i in imm[0].split(',')]
+
+		imm=np.array(imm)
+		print(type(imm))
+		def split_into_rgb_channels(imm):
+			print(type(imm))
+			print(imm)
+			red = imm[::3]
+			green = imm[::2]
+			blue = imm[::1]
+			return red, green, blue
+		r,g,b=split_into_rgb_channels(imm)
+		print("red \n",r)
+		print("green \n",g)
+		print("blue \n",b)'''
+
 		
 
 
