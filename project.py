@@ -410,8 +410,8 @@ class MyButton:
 		decrypt(img,fx,fy,fz,path,mmk,blue,green,red)
 
 
-		#mycmd='python3 -m http.server 80'
-		#os.system(mycmd)
+		mycmd='python3 -m http.server 80'
+		os.system(mycmd)
 		#mycmd.terminate()
 		#wg=' wget http://127.0.0.1:8000/enc.jpg'
 		#os.system(wg)
@@ -434,8 +434,14 @@ class MyButton:
 		os.system(eimg)
 	def otherside(self):
 		#wg=' curl -L -o enc.jpg http://127.0.0.1:80/enc.jpg'
-		#cu='torsocks curl -L -o enccc.jpg  qbgvqebxmduqhgfvspppecmjttoqxohwqqdwbtu4jx4txjeuri4tv2ad.onion/enc.jpg'
-		#os.system(cu)
+		sleee="sleep 5"
+		os.system(sleee)
+		cu='torsocks curl -L -o enccc.jpg  6jsygadgowg3nst7m5ndywez7hd5rlss2phdxpv44xhucjgowbkc4lid.onion/Recovered.jpg'
+		os.system(cu)
+		cll="clear"
+		os.system(cll)
+		os.system(sleee)
+
 		#os.system(wg)
 		'''m1=' curl -L -o mmk.txt http://127.0.0.1:80/mmk.txt'
 		os.system(m1)
